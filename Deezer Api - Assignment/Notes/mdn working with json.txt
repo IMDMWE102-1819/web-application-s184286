@@ -1,0 +1,5 @@
+https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
+
+http://developers.music-story.com/developers
+
+https://www.slideshare.net/quangntta/web-browser-architecture-49196378

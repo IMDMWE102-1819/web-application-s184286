@@ -1,0 +1,17 @@
+
+<form>
+    <input id="" type="" value="">
+
+</form>
+
+<div id="">
+    Trigger the handler
+</div>
+
+$("# ").keyup(function(){
+    alert("......");
+});
+
+$("#other").click(function(){
+    $("target").keyup();
+});
