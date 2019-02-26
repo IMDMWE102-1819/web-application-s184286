@@ -1,0 +1,30 @@
+// url (required), options (optional)
+
+fetch ('https://api.deezer.com/artist/27'{
+	method:'get'
+}).then(function(response){
+
+}).catch(function(err){
+	// Error
+});
+
+
+// response handling
+fetch('https://// url (required), options (optional)
+
+fetch('https://api.deezer.com/artist/27').then(function(response){
+
+}).catch(function(err){
+	// Error 
+});
+
+// Chaining for more "advanced" handling
+fetch (// url (required), options (optional)
+
+fetch ('https://api.deezer.com/artist/27').then(function(response){
+	return //...
+}).then(function(returnedValue){
+	//...
+}).catch(function(err){
+	// Error
+});

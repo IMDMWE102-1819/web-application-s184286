@@ -1,0 +1,158 @@
+﻿<! Request / Response, api for : {album,artist,chart,comment,editorial,episode, genre,infos,options, playlist,podcast,radio,search,track,user } -->
+
+<!DOCTYPE html>
+<html>
+
+	<head>
+
+		<meta name="viewport" content "width=device-width", initial-scale=1.0>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+		<link rel="stylesheet" href="mystyle.css">
+
+	</head>
+
+
+	<body>
+
+		
+		<div align="">
+		<img src="logo.png" alt="deezer logo">
+		</div>
+	
+
+		<div id="dz-root">
+			<div class="wrapper">
+
+				<div class="container" align="center">
+					<h2> Search</h2>
+					<form class="artist-search">
+					<input type="text" class="input" placeholder="Search">
+					<button class="button">Search</button>
+					</form>
+				</div>
+
+				<div class="artist_info">
+					<img class="artist_image" id="artist_image" />
+					<img id="error_image" class="error_image" />
+				</div>
+				<h1 id="artist_name"></h1>
+				<h3 id="artist_nb_fan" class="artist_info_fans"></h3>
+
+				<h4 id="artist_link" class="artist_info_link"></h4>
+			
+			</div>
+
+			<div class="album_list_wrapper" id="album_list">
+
+				<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+				<script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+
+				<script>
+					var artist_info;
+					var album_list;
+
+					$("form").submit(function(event){
+					event.preventDefault();
+					clearArtistInfo();
+					console.log('form submitted');
+					var artist = $('input').val();
+
+					getArtistInfo(artist).then(
+						function(){
+							return getAlbumData();
+						}
+					).then(
+						function(){
+							displayArtistInfo();
+					}
+					).catch(function(reason){
+					console.log(reason);
+					});
+
+
+
+					function getArtistInfo(artist_name){
+						return new Promise(function(resolve,reject){
+							DZ.api("/search/artist/q="+artist_nmae+"&limit=1", function(response){
+
+					if(response.data[0] == undefined){
+					console.log("There is an Error");
+					$("#error_image").show();
+					$("#error_image").attr("src","error-page.jpg");
+					$("artist_image").hide();
+					$("artist_link").hide();
+					}
+					else{
+						artist_info = response.data[0];
+						resolve();
+					}
+
+					});
+
+					/* timer */
+
+					setTimeout(function(){reject("artist info request timed out")},2500);
+					});
+					}
+
+					/* display function > api info */
+
+					function displayArtist(){
+					$("#artist_name").html(artist_info.name);
+					$("#artist_nb_fan").html('<p> Deezer fans for this artist: '+ artist_info.nb_fan +'</p>');
+					$("#artist_link").html('<p> click to see more artist info <a href="'+artist_info.link+'"> click here</a></p>);'
+					$("artist_image").show();
+					$("error_image").html();
+					$("#artist_link").show();
+					$("#artist_image").attr("src",artist_info.picture_big);
+
+					for (var i=0; i< album_list.length; i++){
+						$('album_list').append('<div class="album_info"><img src="'+album_list[i].cover_medium+'"/><p>' + album_list[i].title + '</p></div>);
+						}
+					}
+
+					/* function for clearing the page */
+
+					function clearArtistInfo(){
+					$('#album_list').html("");
+					$('#artist_name').html("");
+					$('#artist_nb_fan').html("");
+					}
+
+					 /* function for the Albums */
+
+					function getAlbumData(){
+						return new Promise(function(resolve,reject){
+						DZ.api("/artist/"+artist_info.id+"/albums?limit=20,function(response){
+						console.log('got album data', response);
+						album_list = response.data[0];
+						resolve();
+					});
+					
+				/* timer */
+
+					});
+					}
+					});
+
+					
+
+
+				</script>
+
+			</div>
+
+
+
+
+	
+
+
+
+		</div>
+
+	</body>
+
+</html>

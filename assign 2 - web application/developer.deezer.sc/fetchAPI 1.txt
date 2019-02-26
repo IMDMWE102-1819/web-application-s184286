@@ -1,0 +1,194 @@
+https://davidwalsh.name/fetch
+
+// Request Headers
+// The ability to set request headers is important in request flexibility. You can work with request headers by executing new Headers():
+
+// Create an empty Headers instance
+var headers = new Headers();
+
+// Add a few headers
+headers.append('Content-Type', 'text/plain');
+headers.append('X-My-Custom-Header','CustomValue');
+
+// Check, get, and set header values
+headers.has('Content-Type');//true
+headers.get('Content-Type');//"text/plain"
+headers.set('Content-Type','application/json');
+
+// Delete a header
+headers.delete('X-My-Custom-Header');
+
+// Add initial values
+var headers = new Headers({
+	'Content-Type': 'text/plain',
+	'X-My-Custom-Header': 'CustomValue'
+});
+
+// can use the append, has, get, set, and delete methods to modify request headers. To use request headers, create a Request instance:
+
+var request = new Request('https://api.deezer.com/artist/27')
+	headers: new Headers({
+		'Content-Type': 'text/plain'
+	})
+});
+
+fetch(request).then(function() { /* handle response */});
+
+/*
+
+Request
+A Request instance represents the request piece of a fetch call. By passing fetch a Request you can make advanced and customized requests:
+
+-method - GET, POST, PUT, DELETE, HEAD
+-url - URL of the request
+-headers - associated Headers object
+-referrer - referrer of the request
+-mode - cors, no-cors, same-origin
+-credentials - should cookies go with the request? omit, same-origin
+-redirect - follow, error, manual
+-integrity - subresource integrity value
+-cache - cache mode (default, reload, no-cache)
+
+A sample Request usage may look like:
+
+*/
+
+var request = new Request({https://api.deezer.com/artist/27 .json',{
+	method:	'POST',
+	mode:'cors',
+	redirect: 'follow',
+	headers: new Headers({
+		'Content-Type': 'text/plain'
+	})
+});
+
+// Now use it!
+
+fetch(request).then(function() { /* handle response */ });
+
+*/
+
+Only the first parameter, the URL, is required. Each property becomes read only once the Request instance has been created. Also important to note that Request has a clone method which is important when using fetch within the Service Worker API -- a Request is a stream and thus must be cloned when passing to another fetch call.
+
+The fetch signature, however, acts like Request so you could also do:
+
+/*
+
+
+
+fetch('https://davidwalsh.name/users.json',{
+	method:'POST',
+	mode: 'cors'
+	redirect: 'follow',
+	headers: new Headers({
+		'Content-Type': 'text/plain'
+	})
+}).then(function(){/* handle response */});
+
+// You'll likely only use Request instances within Service Workers since the Request and fetch signatures can be the same.
+
+// Response
+
+// The fetch's then method is provided a Response instance but you can also manually create Response objects yourself -- another situation you may encounter when using service workers. With a Response you can configure:
+
+-type - basic, cors
+-url
+-useFinalURL - Boolean for if url is the final URL
+-status - status code (ex: 200, 404, etc.)
+-ok - Boolean for successful response (status in the range 200-299)
+-statusText - status code (ex: OK)
+-headers - Headers object associated with the response.
+
+// Create your own response for service worker testing
+// new Response(BODY, OPTIONS)
+var response = new Response('....',{
+	ok: false,
+	status: 404,
+	url: '/'
+});
+
+// The fetch's 'then' gets a Response instance back
+fetch('https://davidwalsh.name/')
+	.then(function(responseObj){
+		console.log('status:', responseObj.staus);
+	});
+
+	/*
+	The Response also provides the following methods:
+
+clone() - Creates a clone of a Response object.
+error() - Returns a new Response object associated with a network error.
+redirect() - Creates a new response with a different URL.
+arrayBuffer() - Returns a promise that resolves with an ArrayBuffer.
+blob() - Returns a promise that resolves with a Blob.
+formData() - Returns a promise that resolves with a FormData object.
+json() - Returns a promise that resolves with a JSON object.
+text() - Returns a promise that resolves with a USVString (text).
+
+*\
+
+// Handling JSON
+Let's say you make a request for JSON -- the resulting callback data has a json method for converting the raw data to a JavaScript object:
+
+fetch('https://davidwalsh.name/demo/arsenal.json').then(function(response){
+	// Convert to JSON
+	return response.json();
+}).then(function(j){
+	// Yay'j' is a Javascript object
+	console.log(j);
+});
+
+Of course that's a simple JSON.parse(jsonString), but the json method is a handy shortcut.
+
+// Handling Basic Text/Html Responses
+JSON isn't always the desired request response format so here's how you can work with an HTML or text response:
+
+fetch('/next/page')
+	.then(function(repsonse){
+		retrurn response.text();
+	}).then(function(text){
+		// <!DOCTYPE ....
+		console.log(text);
+	});
+
+// You can get the response text via chaining the Promise's then method along with the text() method.
+
+// Handling Blob Responses
+// if you want to load an image via fetch, for example, that will be a bit different:
+
+fetch('https://davidwalsh.name/flowers.jpg')
+	.then(function(response){
+		return response.blob();
+	})
+	.then(function(imageBlob){
+		document.querySelector('img').src = URL.createObjectURL(imageBlob);
+	});
+
+// The blob() method of the Body mixin takes a Response stream and reads it to completion.
+
+// Posting Form data
+// Another common use case for AJAX is sending form data -- here's how you would use fetch to post form data:
+
+fetch('https://davidwalsh.name/submit',{
+	method:'post',
+	body: new FormData(document.getElementById('comment-form'))
+});
+
+And if you want to POST JSON to the server:
+
+fetch('https://davidwalsh.name/submit-json',{
+	method:'post',
+	body: JSON.stringify({
+		email: document,getElementById('email').value,
+		answer: document.getElementById('answer').value
+	})
+});
+
+Very easy, very eye-pleasing as well!
+
+// Unwritten Story
+While fetch is a nicer API to use, the API current doesn't allow for canceling a request, which makes it a non-starter for many developers.
+
+The new fetch API seems much saner and simpler to use than XHR.  After all, it was created so that we could do AJAX the right way; fetch has the advantage of hindsight.  I can't wait until fetch is more broadly supported!
+
+This is meant to be an introduction to fetch.  For a more in depth look, please visit Introduction to Fetch.  And if you're looking for a polyfill, check out GitHub's implementation.

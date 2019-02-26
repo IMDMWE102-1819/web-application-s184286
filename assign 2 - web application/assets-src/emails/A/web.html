@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <!--the responsive design consideration -->
+    <meta name="viewport" content "width=device-width", initial-scale=1.0>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+<!--we put the css file into the html, because if not, the html file won't have the same design. -->
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+<body>
+    <div id="dz-root"></div>
+    <div class="wrapper">
+      <!--we make a class for the Search box and the button-->
+      <div class="container">
+        <!--a header over the search box-->
+      <h2>DEEZER API</h2>
+        <form class="artist-search">
+          <!--we put this header, to look more proffesional -->
+          <input type="text" class="input" placeholder="Search artist name">
+          <button class="button">Search</button>
+        </form>
+      </div>
+<!--we make a class for the whole Artist information, inside of which there will be the image, fans, link and albums-->
+      <div class="artist_info_wrapper">
+        <img class="artist_image" id="artist_image"></img>
+        <img id="error_image" class="error_image"></img>
+        <div>
+          <h1 id="artist_name"></h1>
+          <h3 id="artist_nb_fan" class="artist_info_fans"></h3>
+
+          <h4 id="artist_link" class="artist_info_link"><h4>
+        </div>
+      </div>
+
+      <div class="album_list_wrapper" id="album_list"></div>
+    </div>
+<!--we insert the javascript links from the Deezer developer website, which helps us for the javascript functions -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+
+    <script>
+      var artist_info;
+      var album_list;
+/*we submit the function of the button(when we write something inside of the search bar, we press the button and then the data appears where we placed it to be)*/
+      $("form").submit(function(event) {
+        event.preventDefault();
+        clearArtistInfo();
+        console.log('form submitted');
+        var artist = $('input').val();
+
+        getArtistInfo(artist).then(
+          function() {
+            return getAlbumData();
+          }
+        ).then(
+          function() {
+            displayArtistInfo();
+          }
+        ).catch(function(reason) {
+          console.log(reason);
+        });
+
+/*we insert the Promise proxy which allows us to associate handlers with an asynchronous action's, success or failure */
+      function getArtistInfo(artist_name) {
+        return new Promise(function(resolve, reject) {
+          DZ.api("/search/artist?q="+artist_name+"&limit=1", function(response) {
+/*we put another option for the server. To return an error picture if the written in the search box doesn't exist in the Deezer Api*/
+            if(response.data[0] == undefined) {
+              console.log("There is an ERROR");
+              $("#error_image").show();
+              $("#error_image").attr("src","error-page.jpg");
+              $("#artist_image").hide();
+              $("#artist_link").hide();
+            }
+            else{
+              artist_info = response.data[0];
+              resolve();
+            }
+
+          });
+/*we select a time out for the processing of the Api*/
+          setTimeout(function() { reject("artist information request connection timed out") }, 2500);
+        });
+      }
+/*The display fuction, which shows all of the api information inside the website*/
+      function displayArtistInfo() {
+        $("#artist_name").html(artist_info.name);
+        $("#artist_nb_fan").html('<p> Deezer fans for this artist: ' + artist_info.nb_fan + '</p>');
+        $("#artist_link").html('<p> If you want to see more information about this artist <a href="' + artist_info.link + '">PRESS HERE</a></p>');
+        $("#artist_image").show(); /*we make the #artist_image to show when we search for and Artist*/
+        $("#error_image").hide(); /*and the error_image to be hidden*/
+        $("#artist_link").show();
+        $("#artist_image").attr("src", artist_info.picture_big);
+
+        for (var i = 0; i < album_list.length; i++) {
+          $('#album_list').append('<div class="album_info"><img src="'+album_list[i].cover_medium+'"/><p>' + album_list[i].title+ '</p></div>');
+        }
+      }
+/*the function for clearing the page*/
+      function clearArtistInfo() {
+        $('#album_list').html("");
+        $('#artist_name').html("");
+        $('#artist_nb_fan').html("");
+      }
+
+/*the function for the Albums*/
+      function getAlbumData() {
+        return new Promise(function(resolve, reject) {
+          DZ.api("/artist/"+artist_info.id+"/albums?limit=20", function(response) {
+            console.log('got album data', response);
+            album_list = response.data[0];
+            resolve();
+          });
+/*which also needs a timeout, which calls the fuction once after the specified delay - 2500 (as I put here) */
+          setTimeout(function() { reject("album data request connection timed out") }, 2500);
+        });
+      }
+      });
+    </script>
+    </body>
+    </html>

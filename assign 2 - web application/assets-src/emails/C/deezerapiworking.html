@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bark-API</title>
+  <!--responsive design I took from past website I made-->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link href="styledeezz.css" rel="stylesheet" type="text/css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+  <!--Small white box for design purposes-->
+  <style>
+  .fakeimg {
+      height: 200px;
+      background: black;
+  }
+  </style>
+</head>
+<body>
+<div id="dz-root"></div>
+  <!--For smaller devices to reset page-->
+  <div class="container-fluid">
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!--Search bar and search button-->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+          <a class="nav-link" href="deezerapiworking.html">Home</a>
+          <div class="search">
+            <form class="artist-search">
+              <input type="text" placeholder="Search Artist Name" id="input">
+              <button class="btn btn-default" type="submit" placeholder="submit">Search<i class="glyphicon glyphicon-search"></i></button>
+          </form>
+            </div>
+    </div>
+      <span class="navbar-text">
+        <!--text on opposite from search box-->
+          <span class="oi-oi-envolope"><a><h3>DEEZER API</h3></a></span>
+      </span>
+  </nav>
+  </div>
+<div class="wrapper">
+<div class="artist-wrapper">
+    <img class="artist_image" id="artist_image" alt=></img><!--This also works-->
+    <h1 class="artist_name" id="artist_name"></h1><!--this one works! displayArtistInfo-->
+    <h4 class="artist_link" id="artist_link"></h4>
+    <img id="error_image" class="error_image"></img>
+    <div>
+    </div>
+</div><!--in these divs the classes are used to display the relevent information this is also 
+      how it is shown in css within the wrappers-->
+<div class="album_list_wrapper" id="album_list"></div> <!--It all works yay!-->
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://e-cdns-files.dzcdn.net/js/min/dz.js"></script>
+    <script>
+      var artist_info;
+      var album_list;
+      var request_response;
+      $("form").submit(function(event) {
+          event.preventDefault();
+          clearArtistInfo();
+          console.log("form Complete");
+          var artist = $('input').val();
+          //submits form and takes the value and uses it as artist
+        
+          getArtistInfo(artist).then(
+              //uses artist as getArtistInfo
+              function() {
+                  return getAlbumData();
+              }
+          ).then(
+              function() {
+                  displayArtistInfo();
+              }
+          ).catch(function(reason) {
+              console.log(reason);
+          });
+          function getArtistInfo(artist_name) {
+            return new Promise(function(resolve, reject) {
+            console.log('promise created');
+            console.log(artist_name)
+            DZ.api("/search/artist?q="+artist_name+"&limit=1", function(response) {
+                //makes a search with the form input and also limits the results to only one
+              console.log(response);
+              if (response.data[0] == undefined) {
+                    console.log('looks like there was a problem.');
+                    $("#error_image").show();
+                    $("#error_image").image("src","error-page.jpg");
+                    $("#artist_image").hide();
+                    $("#artist_image").hide();
+                    //if there is error should show error image and hide the artist image 
+                  } 
+              else {
+                    artist_info = response.data[0];
+                    console.log(artist_info)
+                    resolve();
+                    //response.data is stored as artist_info
+                  }
+            });
+            setTimeout(function() {
+                reject("Artist information was unobtainable. Your were timed out")
+            }, 2500);/*time out function so it has time to get 
+                    a response and if not user will be timed out*/ 
+          });
+        };
+    function displayArtistInfo() {
+        console.log('display artist info')
+        $("#artist_name").html(artist_info.name);
+        $("#artist_link").html('<h4> If you want to see more information about this artist <a href="' + artist_info.link + '">PRESS HERE</a></h4>');
+        $("#artist_image").show();
+        $("#error_image").hide();
+        $("#artist_image").attr("src", artist_info.picture_big);
+        //this will be used to display the artist name and picture
+
+        for (var i = 0; i < album_list.length; i++) {
+          $('#album_list').append('<div id="album_info"><img src="'+album_list[i].cover_medium+'">');
+          $('#album_list').append('<p>'+ album_list[i].title+'<p>'+ 'Date Released: &nbsp;'   + album_list[i].release_date+ '</p></p></div>')
+          //this is used to append the artists albums cover and names of albums and they're release date
+        }
+    }
+    function clearArtistInfo() {
+        $('#album_list').html("");
+        $('#artist_name').html("");
+        $('#artist_image').html("");
+        //this is used to clear the page everytime a search is made
+    }
+    function getAlbumData() {
+        return new Promise(function(resolve, reject) {
+            DZ.api("/artist/"+artist_info.id+"/albums?limit=10", function(response) {
+                //you can change limit for more albums to appear
+                console.log('obtained album data', (response));
+                album_list = response.data;
+                //the response data from this function is stored as album_data
+                resolve();
+                //this is used to search for the artists albums
+                }
+        );
+            setTimeout(function() {
+                reject("Album information was unobtainable. Your were timed out")
+            }, 2500);//here is another timeout function 
+        });
+    }
+});
+  </script>
+  <footer class="section footer-classic context-dark bg-image" style="background: #2d3246;">
+        <div class="container">
+          <div class="row row-10">
+            <div class="col-md-4 col-xl-5">
+            </div>
+            </div>  
+        </div>
+        <div class="row no-gutters social-container">
+          <div class="col"><a class="social-inner" href="#"><span class="icon mdi mdi-facebook"></span><span>Search an Artist</span></a></div>
+          <div class="col"><a class="social-inner" href="#"><span class="icon mdi mdi-instagram"></span><span>instagram</span></a></div>
+          <div class="col"><a class="social-inner" href="#"><span class="icon mdi mdi-twitter"></span><span>twitter</span></a></div>
+          <div class="col"><a class="social-inner" href="#"><span class="icon mdi mdi-youtube-play"></span><span>google</span></a></div>
+        </div>
+      </footer>
+</body>
+</html>

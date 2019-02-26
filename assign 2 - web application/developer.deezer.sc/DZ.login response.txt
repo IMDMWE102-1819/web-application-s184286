@@ -1,0 +1,9 @@
+{
+	authResponse: {
+		accessToken: 'fr338hRD7G528230bd8bd39GsS3Pwys528230ac8bda5UYl53x',
+		expire: '196966942',
+	},
+	// 2 types of statuses: 'connected', 'not_authorized'
+	status: 'connected',
+	userID: '96780391'
+}
